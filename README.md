@@ -30,7 +30,7 @@ To use this tool, ensure the following are installed and configured on your syst
 1. Clone or download this repository.
 2. Run the script using Python 3:
    ```bash
-   python3 nmap_automation_tool.py
+   python3 nmap_scanner.py
    ```
 3. Follow the on-screen instructions:
    - Enter the IP address you want to scan.
