@@ -1,24 +1,30 @@
+---
+
 # Nmap Automation Tool
 
-Welcome to the **Nmap Automation Tool**, a Python script designed to simplify network scanning tasks using the powerful `nmap` library. This tool provides a user-friendly interface to perform different types of scans on a specified IP address, making it easier for network administrators and cybersecurity enthusiasts to explore and analyze their networks.
+Welcome to the **Nmap Automation Tool**, a Python-based network scanning utility that simplifies and automates powerful `nmap` scans. This tool provides an interactive interface for performing ping checks and multiple types of scans, making it ideal for network administrators, cybersecurity enthusiasts, and ethical hackers.
 
 ---
 
 ## Features
 
-- **SYN ACK Scan**: Quickly identifies open TCP ports by sending SYN packets and analyzing responses.
-- **UDP Scan**: Scans for open UDP ports within the specified range.
-- **Comprehensive Scan**: Performs detailed scans including service version detection, OS detection, and script scanning.
+* **Ping Detection**: Checks if the host is alive before scanning.
+* **IP Validation**: Verifies if the entered IP address is syntactically valid.
+* **Optional Port Range**: Allows scanning custom or default port ranges (defaults to 1-1024).
+* **SYN ACK Scan**: Quickly identifies open TCP ports by sending SYN packets and analyzing responses.
+* **UDP Scan**: Scans for open UDP ports in the provided port range.
+* **Comprehensive Scan**: Performs deep analysis including service version detection, OS fingerprinting, and script scanning.
 
 ---
 
 ## Requirements
 
-To use this tool, ensure the following are installed and configured on your system:
+Make sure you have the following installed:
 
-- **Python**: Version 3 or later.
-- **Nmap**: Download and install Nmap from [Nmap's official website](https://nmap.org/download.html).
-- **python-nmap**: Install the Python wrapper for Nmap using the following command:
+* **Python**: Version 3 or later.
+* **Nmap**: Command-line tool must be installed and accessible via system path.
+* **python-nmap**: Python wrapper for `nmap`. Install it via:
+
   ```bash
   pip install python-nmap
   ```
@@ -28,25 +34,47 @@ To use this tool, ensure the following are installed and configured on your syst
 ## Usage
 
 1. Clone or download this repository.
-2. Run the script using Python 3:
+2. Run the script with Python 3:
+
    ```bash
    python3 nmap_scanner.py
    ```
-3. Follow the on-screen instructions:
-   - Enter the IP address you want to scan.
-   - Choose the type of scan to perform:
-     - **1**: SYN ACK Scan
-     - **2**: UDP Scan
-     - **3**: Comprehensive Scan
+3. Follow the interactive prompt:
+
+   * Enter the target IP address (or type `quit` to exit).
+   * If the IP is reachable and valid, choose a scan type:
+
+     * **1**: SYN ACK Scan
+     * **2**: UDP Scan
+     * **3**: Comprehensive Scan
+   * Enter a port range or press Enter to use the default `1-1024`.
 
 ---
 
 ## Example Output
 
-### SYN ACK Scan:
+### When Host is Down or Invalid:
+
 ```
-Please enter the IP address to scan: 192.168.1.1
+Enter IP (or 'quit' to exit): 192.168.5.200
+The IP you entered is: 192.168.5.200
+Host appears to be down
+Invalid IP address format
+```
+
+### SYN ACK Scan:
+
+```
+Enter IP (or 'quit' to exit): 192.168.1.1
+The IP you entered is: 192.168.1.1
+
+Choose your scan type:
+1) SYN ACK Scan
+2) UDP Scan
+3) Comprehensive Scan
+
 You have entered the option: 1
+Enter port range (e.g. 1-1000) or leave blank for default (1-1024): 
 Nmap version: (7, 93)
 Scan information: {'tcp': {'method': 'syn', 'services': '1-1024'}}
 IP status: up
@@ -55,20 +83,22 @@ Open ports: dict_keys([22, 80, 443])
 ```
 
 ### UDP Scan:
+
 ```
-Please enter the IP address to scan: 192.168.1.1
 You have entered the option: 2
+Enter port range (e.g. 1-1000) or leave blank for default (1-1024): 1-100
 Nmap version: (7, 93)
-Scan information: {'udp': {'method': 'udp', 'services': '1-1024'}}
+Scan information: {'udp': {'method': 'udp', 'services': '1-100'}}
 IP status: up
 Protocols Found: ['udp']
-Open ports: dict_keys([53, 123])
+Open ports: dict_keys([53])
 ```
 
 ### Comprehensive Scan:
+
 ```
-Please enter the IP address to scan: 192.168.1.1
 You have entered the option: 3
+Enter port range (e.g. 1-1000) or leave blank for default (1-1024): 
 Nmap version: (7, 93)
 Scan information: {'tcp': {'method': 'syn', 'services': '1-1024'}}
 IP status: up
@@ -82,34 +112,39 @@ Port: 443, State: open
 
 ---
 
-## Notes
+## ⚠️ Notes
 
-- Ensure you have the necessary permissions to scan the target IP address. Unauthorized scanning may violate local or international laws.
-- Use this tool responsibly and within the bounds of ethical guidelines.
+* **Legal Warning**: Scanning networks you do not own or have explicit permission to analyze is illegal in many jurisdictions.
+* Ensure you have administrative privileges when running advanced scans.
+* Use responsibly and ethically for testing, auditing, or research purposes.
 
 ---
 
 ## Troubleshooting
 
-1. **Nmap is not installed**:
-   - Ensure Nmap is installed and accessible in your system's PATH.
-2. **Permission denied**:
-   - Some scans may require administrative privileges. Run the script with elevated permissions (e.g., using `sudo` on Linux).
-3. **Firewall blocking scans**:
-   - Target firewalls may block certain types of scans, leading to incomplete results.
+* **Nmap not found**:
+  Ensure Nmap is installed and added to your system’s `PATH`.
+
+* **Permission issues**:
+  Use `sudo` or run with elevated privileges if certain scans fail.
+
+* **No open ports or host down**:
+  The host might be firewalled or unresponsive to ICMP (ping) requests.
 
 ---
 
-## License
+## 📄 License
 
-This project is open-source and available under the MIT License. Feel free to modify and adapt it to your needs.
+This project is licensed under the **MIT License**. You are free to modify and use it for both personal and professional purposes.
 
 ---
 
-## Author
+## 👤 Author
 
-**Parshant Kumar**  
-Technical Secretary at OWASP_TIET
+**Parshant Kumar**
+Technical Secretary at OWASP\_TIET
 
-For queries or suggestions, feel free to reach out or contribute to the project. Enjoy secure and efficient network exploration!
+Feel free to contribute, open issues, or suggest improvements. Happy scanning! 🕵️‍♂️
+
+---
 
