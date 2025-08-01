@@ -4,12 +4,22 @@
 import nmap
 import ipaddress
 from pprint import pprint
+from colorama import Fore, Style, init
+
+# Initialize colorama for colored output in the terminal
+init(autoreset=True)
+
+def print_colored_banner():
+    print(Fore.CYAN + "=" * 50)
+    print(Fore.GREEN + "         Welcome to Nmap Scanner Tool")
+    print(Fore.CYAN + "=" * 50)
+
+print_colored_banner()
+
 
 # Initialize the Nmap PortScanner object
 scanner = nmap.PortScanner()
 
-print("Welcome to the Nmap Automation Tool")
-print("<----------------------------------------->")
 
 while True:
     ip_addr = input("\nEnter IP (or 'quit' to exit): ")

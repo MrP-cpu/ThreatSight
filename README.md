@@ -133,13 +133,13 @@ Port: 443, State: open
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License**. You are free to modify and use it for both personal and professional purposes.
 
 ---
 
-## 👤 Author
+## Author
 
 **Parshant Kumar**
 Technical Secretary at OWASP\_TIET
