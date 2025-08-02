@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import time
 import nmap
 import ipaddress
 from pprint import pprint
@@ -8,10 +8,18 @@ from colorama import Fore, Style, init
 # Initialize colorama
 init(autoreset=True)
 
+
+for i in range(101):
+    time.sleep(0.01)
+    print(Fore.YELLOW + Style.BRIGHT + f"Loading ThreatSight... {i}%", end='\r')
+print("\nDone!")
+
 def print_colored_banner():
     print(Fore.CYAN + "=" * 50)
-    print(Fore.GREEN + "         Welcome to Nmap Scanner Tool")
+    print(Fore.GREEN + "         Welcome to ThreatSight Scanner")
     print(Fore.CYAN + "=" * 50)
+
+
 
 def validate_ip(ip):
     try:
@@ -55,8 +63,8 @@ def main():
     scanner = nmap.PortScanner()
 
     while True:
-        ip_addr = input("\nEnter IP (or 'quit' to exit): ").strip()
-        if ip_addr.lower() == 'quit':
+        ip_addr = input("\nEnter IP (or 'q' to exit): ").strip()
+        if ip_addr.lower() == 'q':
             break
 
         if not validate_ip(ip_addr):
