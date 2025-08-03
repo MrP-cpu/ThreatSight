@@ -2,15 +2,13 @@
 import time
 import nmap
 import ipaddress
-from pprint import pprint
 from colorama import Fore, Style, init
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
 
 # Initialize colorama
 init(autoreset=True)
 
-
+# Loading animation
 for i in range(101):
     time.sleep(0.01)
     print(Fore.YELLOW + Style.BRIGHT + f"Loading ThreatSight... {i}%", end='\r')
@@ -20,55 +18,43 @@ def print_colored_banner():
     print(Fore.CYAN + "=" * 50)
     print(Fore.GREEN + "         Welcome to ThreatSight Scanner")
     print(Fore.CYAN + "=" * 50)
-
     print(Fore.YELLOW + "This tool allows you to scan IP addresses for open ports and services.")
     print(Fore.YELLOW + "You can choose between SYN ACK, UDP, or Comprehensive scans.")
 
-
-
-def scan_target(ip, ports, scan_type):
-    """Thread-safe Scanning function"""
+def scan_target(scanner, ip, ports, scan_type):
     try:
-        if scan_type=='syn':
-            scanner.scan(ip, ports, '-v -sS')
-        elif scan_type=='udp':
-            scanner.scan(ip, ports, '-v -sU')
-        elif scan_type=='comprehensive':
-            scanner.scan(ip, ports, '-v -sS -sV -O -A')
+        args = {
+            'syn': '-Pn -v -sS',
+            'udp': '-Pn -v -sU',
+            'comprehensive': '-Pn -v -sS -sV -O -A'
+        }.get(scan_type, '-Pn -v -sS')
+
+        scanner.scan(ip, ports, args)
+        if ip in scanner.all_hosts():
+            return ip, scanner[ip]
         else:
-            raise ValueError("Invalid scan type specified.")
-        return scanner[ip]
+            return ip, f"No results returned for {ip}."
     except Exception as e:
-        print(Fore.RED + f"Error scanning {ip}: {e}")
-        return None
-    
+        return ip, str(e)
 
 def threaded_scan(ips, ports, scan_type, max_threads=10):
     results = {}
-    
     with ThreadPoolExecutor(max_workers=max_threads) as executor:
-        # Create a future for each IP scan
         futures = {
-            executor.submit(scan_target, nmap.PortScanner(), ip, ports, scan_type): ip 
+            executor.submit(scan_target, nmap.PortScanner(), ip, ports, scan_type): ip
             for ip in ips
         }
-        
-        # Process completed scans
         for future in as_completed(futures):
             ip = futures[future]
             try:
                 target_ip, result = future.result()
-                if isinstance(result, str):  # If error
+                if isinstance(result, str):
                     print(Fore.RED + f"Scan failed for {ip}: {result}")
                 else:
-                    results[target_ip] = result  # Store success
+                    results[target_ip] = result
             except Exception as e:
                 print(Fore.RED + f"Exception for {ip}: {str(e)}")
-    
     return results
-
-
-# Function to validate IP address format
 
 def validate_ip(ip):
     try:
@@ -82,39 +68,38 @@ def get_port_range():
     return ports if ports else '1-1024'
 
 def scan_ping(scanner, ip):
-    """Reliable host discovery with multiple techniques"""
     try:
-        # Try comprehensive discovery first
-        scanner.scan(hosts=ip, arguments='-sn -PE -PS443,80 -PA21,22')
-        hosts = scanner.all_hosts()
-        
-        if not hosts:
-            # Fallback to just ICMP
-            scanner.scan(hosts=ip, arguments='-sn -PE')
-            hosts = scanner.all_hosts()
-            
-        return hosts
+        scanner.scan(hosts=ip, arguments='-sn')
+        return scanner.all_hosts()
     except Exception as e:
         print(Fore.YELLOW + f"Discovery error: {str(e)}")
         return []
 
 def scan_syn(scanner, ip, ports):
-    scanner.scan(ip, ports, '-v -sS')
-    return scanner[ip]
+    scanner.scan(ip, ports, '-Pn -v -sS')
+    if ip in scanner.all_hosts():
+        return scanner[ip]
+    else:
+        raise Exception(f"No results returned for {ip}.")
 
 def scan_udp(scanner, ip, ports):
-    scanner.scan(ip, ports, '-v -sU')
-    return scanner[ip]
+    scanner.scan(ip, ports, '-Pn -v -sU')
+    if ip in scanner.all_hosts():
+        return scanner[ip]
+    else:
+        raise Exception(f"No results returned for {ip}.")
 
 def scan_comprehensive(scanner, ip, ports):
-    scanner.scan(ip, ports, '-v -sS -sV -O -A')
-    return scanner[ip]
+    scanner.scan(ip, ports, '-Pn -v -sS -sV -O -A')
+    if ip in scanner.all_hosts():
+        return scanner[ip]
+    else:
+        raise Exception(f"No results returned for {ip}.")
 
 def print_scan_results(scanner, ip):
     print("Scan Info:", scanner.scaninfo())
     print("IP Status:", scanner[ip].state())
     print("Protocols Found:", scanner[ip].all_protocols())
-
     for proto in scanner[ip].all_protocols():
         print(f"\nProtocol: {proto.upper()}")
         for port in scanner[ip][proto].keys():
@@ -123,9 +108,8 @@ def print_scan_results(scanner, ip):
 def main():
     print_colored_banner()
     scanner = nmap.PortScanner()
-
-
     print(Fore.GREEN + "Host is up. Proceeding with scan...")
+
     while True:
         ip_addr = input("\nEnter IP (or 'q' to exit): ").strip()
         if ip_addr.lower() == 'q':
@@ -135,9 +119,12 @@ def main():
             print(Fore.RED + "Invalid IP address format.")
             continue
 
-        if not scan_ping(scanner, ip_addr):
-            print(Fore.YELLOW + "Host appears to be down.")
-            continue
+        live_hosts = scan_ping(scanner, ip_addr)
+        if not live_hosts:
+            print(Fore.YELLOW + "Host appears to be down or not responding to ping.")
+            proceed = input("Do you want to continue with scan anyway? (y/n): ").strip().lower()
+            if proceed != 'y':
+                continue
 
         print("Nmap version:", scanner.nmap_version())
 
@@ -150,17 +137,21 @@ Choose your scan type:
         choice = input("Enter your choice (1/2/3): ").strip()
         ports = get_port_range()
 
-        if choice == '1':
-            result = scan_syn(scanner, ip_addr, ports)
-            print_scan_results(scanner, ip_addr)
-        elif choice == '2':
-            result = scan_udp(scanner, ip_addr, ports)
-            print_scan_results(scanner, ip_addr)
-        elif choice == '3':
-            result = scan_comprehensive(scanner, ip_addr, ports)
-            print_scan_results(scanner, ip_addr)
-        else:
-            print(Fore.RED + "Invalid scan option. Please choose 1, 2, or 3.")
+        try:
+            if choice == '1':
+                result = scan_syn(scanner, ip_addr, ports)
+                print_scan_results(scanner, ip_addr)
+            elif choice == '2':
+                result = scan_udp(scanner, ip_addr, ports)
+                print_scan_results(scanner, ip_addr)
+            elif choice == '3':
+                result = scan_comprehensive(scanner, ip_addr, ports)
+                print_scan_results(scanner, ip_addr)
+            else:
+                print(Fore.RED + "Invalid scan option. Please choose 1, 2, or 3.")
+        except Exception as e:
+            print(Fore.RED + f"Scan failed: {e}")
 
 if __name__ == "__main__":
     main()
+
