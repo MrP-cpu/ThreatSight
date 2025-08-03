@@ -62,7 +62,7 @@ flowchart LR
     Scan-->Services-->CVE_Matching-->Risk_Scoring
 ```
 
-#### Skills to Learn 🎓  
+#### Skills to Learn 
 - REST API consumption (NVD, Vulners)  
 - Data caching with `redis`  
 - CVSS vector parsing  
@@ -137,7 +137,7 @@ flowchart TB
 
 ---
 
-## 📬 **Contributing**  
+##  **Contributing**  
 1. Fork → Branch → Test → PR  
 2. Coding Standards:  
    - Type hints for all functions  
@@ -150,25 +150,13 @@ flowchart TB
 MIT License - See [LICENSE.md](LICENSE.md) for details.  
 
 **Author**: Parshant Kumar  
-**Maintainer**: Your Organization  
+
 
 ---
 
-### 🔗 **Resources**  
+###  **Resources**  
 - [Nmap Documentation](https://nmap.org/book/)  
 - [CVE Search API](https://cve.circl.lu/)  
 - [CVSS v3.1 Calculator](https://www.first.org/cvss/calculator/3.1)  
 
 ---
-
-This README provides:  
-Clear phase-by-phase progression  
-Technical depth with code snippets  
-Compliance/legal safeguards  
-Contributor guidelines  
-Visual architecture diagrams  
-
-Would you like me to add:  
-- Detailed setup instructions for each phase?  
-- Screenshots of sample outputs?  
-- Video walkthrough links?
