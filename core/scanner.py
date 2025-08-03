@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 import time
 import nmap
+import socket
 import ipaddress
 from colorama import Fore, Style, init
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
+
+
+
+
 
 # Initialize colorama
 init(autoreset=True)
@@ -24,6 +29,7 @@ def print_colored_banner():
 
 def scan_target(scanner, ip, ports, scan_type):
     try:
+        print(f"Thread started for {ip}")
         args = {
             'syn': '-Pn -v -sS',
             'udp': '-Pn -v -sU',
@@ -32,13 +38,17 @@ def scan_target(scanner, ip, ports, scan_type):
 
         scanner.scan(ip, ports, args)
         if ip in scanner.all_hosts():
+            print(f"Thread completed for {ip}")
             return ip, scanner[ip]
         else:
+            print(f"Thread completed (no results) for {ip}")
             return ip, f"No results returned for {ip}."
     except Exception as e:
+        print(f"Thread failed for {ip}")
         return ip, str(e)
 
 def threaded_scan(ips, ports, scan_type, max_threads=10):
+    start_time = time.time()
     results = {}
     with ThreadPoolExecutor(max_workers=max_threads) as executor:
         futures = {
@@ -46,6 +56,9 @@ def threaded_scan(ips, ports, scan_type, max_threads=10):
             for ip in ips
         }
         for future in as_completed(futures):
+            active_threads=executor._work_queue.qsize()+1
+            print(f"Active threads: {active_threads}"
+                  f" | Total threads: {max_threads}")
             ip = futures[future]
             try:
                 target_ip, result = future.result()
@@ -55,10 +68,15 @@ def threaded_scan(ips, ports, scan_type, max_threads=10):
                     results[target_ip] = result
             except Exception as e:
                 print(Fore.RED + f"Exception for {ip}: {str(e)}")
+    end_time = time.time()
+    print(f"Scan completed in {end_time - start_time:.2f} seconds")
     return results
 
 def validate_ip(ip):
     try:
+        # Handle comma-separated IPs
+        if ',' in ip:
+            return all(validate_ip(i.strip()) for i in ip.split(','))
         ipaddress.ip_address(ip)
         return True
     except ValueError:
@@ -97,18 +115,43 @@ def scan_comprehensive(scanner, ip, ports):
     else:
         raise Exception(f"No results returned for {ip}.")
 
-def print_scan_results(scanner, ip):
-    print("Scan Info:", scanner.scaninfo())
-    print("IP Status:", scanner[ip].state())
-    print("Protocols Found:", scanner[ip].all_protocols())
-    for proto in scanner[ip].all_protocols():
-        print(f"\nProtocol: {proto.upper()}")
-        for port in scanner[ip][proto].keys():
-            print(f"Port: {port}, State: {scanner[ip][proto][port]['state']}")
+def os_scan(ip):
+    """Detect operating system"""
+    arguments = '-O --osscan-guess'
+    scanner.scan(ip, arguments=arguments)
+    return scanner[ip]['osmatch']
+
+
+def print_scan_results(scan_result, ip):
+    try:
+        # print(Fore.CYAN + f"\nResults for {ip}:")
+        print("IP Status:", scan_result.get('status', {}).get('state', 'unknown'))
+
+        # Only include protocol keys that have port dictionaries (e.g., tcp, udp)
+        protocol_keys = [k for k, v in scan_result.items() if isinstance(v, dict) and all(isinstance(p, dict) for p in v.values())]
+
+        print("Protocols Found:", protocol_keys)
+
+        for proto in protocol_keys:
+            print(f"\nProtocol: {proto.upper()}")
+            ports = scan_result.get(proto, {})
+            for port, port_data in ports.items():
+                state = port_data.get('state', 'unknown')
+                print(f"Port: {port}, State: {state}")
+    except Exception as e:
+        print(Fore.RED + f"Failed to print scan result for {ip}: {e}")
+
+
 
 def main():
     print_colored_banner()
     scanner = nmap.PortScanner()
+
+    version = scanner.nmap_version()
+    print(Fore.YELLOW + f"Nmap version: {version}")
+    print(Fore.GREEN + "ThreatSight Scanner is ready to use!")
+
+
     print(Fore.GREEN + "Host is up. Proceeding with scan...")
 
     while True:
@@ -154,12 +197,10 @@ Choose your scan type:
 
         results = threaded_scan(ips, ports, scan_type=scan_type)
 
-        for ip in results:
-            print(Fore.CYAN + f"\nResults for {ip}:")
-            try:
-                print_scan_results(results[ip], ip)
-            except Exception as e:
-                print(Fore.RED + f"Error printing results for {ip}: {e}")
+        for ip, result in results.items():
+           print(Fore.CYAN + f"\nResults for {ip}:")
+           print_scan_results(result, ip)
+
 
 if __name__ == "__main__":
     main()
