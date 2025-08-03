@@ -31,20 +31,23 @@ def scan_target(scanner, ip, ports, scan_type):
     try:
         print(f"Thread started for {ip}")
         args = {
-            'syn': '-Pn -v -sS',
-            'udp': '-Pn -v -sU',
-            'comprehensive': '-Pn -v -sS -sV -O -A'
-        }.get(scan_type, '-Pn -v -sS')
+            'syn': '-sS',
+            'udp': '-sU',
+            'comprehensive': '-sS -sV -O -A'
+        }.get(scan_type, '-sS')
 
-        scanner.scan(ip, ports, args)
+        print(Fore.CYAN + f"[DEBUG] Scan issued for {ip} on ports {ports} with args: {args}")
+        scanner.scan(ip, ports, arguments=args)
+
         if ip in scanner.all_hosts():
-            print(f"Thread completed for {ip}")
+            print(Fore.GREEN + f"[✓] Thread completed successfully for {ip}")
             return ip, scanner[ip]
         else:
-            print(f"Thread completed (no results) for {ip}")
-            return ip, f"No results returned for {ip}."
+            print(Fore.YELLOW + f"[!] Thread completed but no results for {ip}")
+            # Optional: return raw output for debugging
+            return ip, scanner.command_line()
     except Exception as e:
-        print(f"Thread failed for {ip}")
+        print(Fore.RED + f"[✗] Thread failed for {ip}: {e}")
         return ip, str(e)
 
 def threaded_scan(ips, ports, scan_type, max_threads=10):
@@ -55,10 +58,8 @@ def threaded_scan(ips, ports, scan_type, max_threads=10):
             executor.submit(scan_target, nmap.PortScanner(), ip, ports, scan_type): ip
             for ip in ips
         }
-        for future in as_completed(futures):
-            active_threads=executor._work_queue.qsize()+1
-            print(f"Active threads: {active_threads}"
-                  f" | Total threads: {max_threads}")
+
+        for future in tqdm(as_completed(futures), total=len(futures), desc="Scanning..."):
             ip = futures[future]
             try:
                 target_ip, result = future.result()
@@ -84,7 +85,18 @@ def validate_ip(ip):
 
 def get_port_range():
     ports = input("Enter port range (e.g. 1-1000) or leave blank for default (1-1024): ")
-    return ports if ports else '1-1024'
+    if not ports:
+        return '1-1024'
+    try:
+        start, end = map(int, ports.split('-'))
+        if 1 <= start <= 65535 and 1 <= end <= 65535 and start <= end:
+            return ports
+        else:
+            raise ValueError
+    except:
+        print(Fore.RED + "Invalid port range. Defaulting to 1-1024.")
+        return '1-1024'
+
 
 def scan_ping(scanner, ip):
     try:
@@ -124,22 +136,23 @@ def os_scan(ip):
 
 def print_scan_results(scan_result, ip):
     try:
-        # print(Fore.CYAN + f"\nResults for {ip}:")
-        print("IP Status:", scan_result.get('status', {}).get('state', 'unknown'))
+        print(f"{Fore.CYAN}Scan results for {ip}:{Style.RESET_ALL}")
+        print(f"IP Status: {scan_result.get('status', {}).get('state', 'unknown')}")
+        
+        protocols = scan_result.all_protocols()
+        print(f"Protocols Detected: {protocols}")
 
-        # Only include protocol keys that have port dictionaries (e.g., tcp, udp)
-        protocol_keys = [k for k, v in scan_result.items() if isinstance(v, dict) and all(isinstance(p, dict) for p in v.values())]
-
-        print("Protocols Found:", protocol_keys)
-
-        for proto in protocol_keys:
-            print(f"\nProtocol: {proto.upper()}")
-            ports = scan_result.get(proto, {})
-            for port, port_data in ports.items():
+        for proto in protocols:
+            ports = scan_result.get(proto, {}).keys()
+            print(f"\n{Fore.YELLOW}Protocol: {proto.upper()}{Style.RESET_ALL}")
+            for port in sorted(ports):
+                port_data = scan_result[proto][port]
                 state = port_data.get('state', 'unknown')
-                print(f"Port: {port}, State: {state}")
+                service = port_data.get('name', 'unknown')
+                print(f"  Port: {port:<6} | State: {state:<7} | Service: {service}")
     except Exception as e:
-        print(Fore.RED + f"Failed to print scan result for {ip}: {e}")
+        print(Fore.RED + f"Error while printing scan result: {e}")
+
 
 
 
