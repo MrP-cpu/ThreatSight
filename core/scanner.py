@@ -4,6 +4,7 @@ import nmap
 import ipaddress
 from colorama import Fore, Style, init
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from tqdm import tqdm
 
 # Initialize colorama
 init(autoreset=True)
@@ -137,20 +138,28 @@ Choose your scan type:
         choice = input("Enter your choice (1/2/3): ").strip()
         ports = get_port_range()
 
-        try:
-            if choice == '1':
-                result = scan_syn(scanner, ip_addr, ports)
-                print_scan_results(scanner, ip_addr)
-            elif choice == '2':
-                result = scan_udp(scanner, ip_addr, ports)
-                print_scan_results(scanner, ip_addr)
-            elif choice == '3':
-                result = scan_comprehensive(scanner, ip_addr, ports)
-                print_scan_results(scanner, ip_addr)
-            else:
-                print(Fore.RED + "Invalid scan option. Please choose 1, 2, or 3.")
-        except Exception as e:
-            print(Fore.RED + f"Scan failed: {e}")
+        # Multiple IPs can be scanned at once
+        ips = [ip.strip() for ip in ip_addr.split(',')]
+
+        # Scan type string for threaded_scan()
+        scan_type = {
+            '1': 'syn',
+            '2': 'udp',
+            '3': 'comprehensive'
+        }.get(choice)
+
+        if not scan_type:
+            print(Fore.RED + "Invalid scan option. Please choose 1, 2, or 3.")
+            continue
+
+        results = threaded_scan(ips, ports, scan_type=scan_type)
+
+        for ip in results:
+            print(Fore.CYAN + f"\nResults for {ip}:")
+            try:
+                print_scan_results(results[ip], ip)
+            except Exception as e:
+                print(Fore.RED + f"Error printing results for {ip}: {e}")
 
 if __name__ == "__main__":
     main()
