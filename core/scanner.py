@@ -21,6 +21,14 @@ import os
 import sys
 import textwrap
 
+import json
+import importlib
+import importlib.util
+import glob
+import re
+from pathlib import Path
+
+
 # Initialize colorama for colored output
 from colorama import Fore, Style, init
 init()
@@ -502,6 +510,8 @@ class SYNPacket:
         s = ~s & 0xffff
         return s
 
+
+
 class ThreatSightScanner:
     def __init__(self, target_ip: str, stealth_mode: bool = False):
         self.target_ip = target_ip
@@ -798,13 +808,6 @@ class ThreatSightScanner:
                     print(f"  {Fore.YELLOW}Port {result.port}: {service['name']} - {service['description']}{Style.RESET_ALL}")
         
         return results
-
-
-
-    def os_fingerprinting(): 
-    # Implement OS detection using TTL, window size, and other TCP flags.
-    # NEW: Develop a "smart" banner grabber that sends specific, service-aware requests (e.g., an HTTP GET request, an SSH protocol handshake, etc.).
-    # NEW: Build a simple **plugin system** (e.g., loading Python modules as probes) to extend your scanner's functionality.
         
 
 
