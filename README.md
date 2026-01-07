@@ -270,4 +270,4 @@ pip install -r requirements.txt
 python threat_sight.py 192.168.1.0/24 --stealth --output report.html
 ```
 
-For detailed documentation, see our [Wiki](https://github.com/yourusername/threatsight/wiki).
+For detailed documentation, see our [Wiki](https://github.com/MrP-cpu/ThreatSight/wiki).
