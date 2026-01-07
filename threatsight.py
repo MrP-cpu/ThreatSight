@@ -29,8 +29,13 @@ import re
 from pathlib import Path
 
 
+
 # Initialize colorama for colored output
 from colorama import Fore, Style, init
+
+
+# for os fingerprinting 
+from core.os_fingerprint import OSFingerprintDB
 init()
 
 # ASCII Art Banner
@@ -71,9 +76,9 @@ def display_help():
     ==================================================
 
     USAGE:
-      python threatsight.py [TARGET] [OPTIONS]
-      python threatsight.py 192.168.1.1 -s 20 -e 1000 -t threaded
-      python threatsight.py example.com --common --stealth
+      python3 threatsight.py [TARGET] [OPTIONS]
+      python3 threatsight.py 192.168.1.1 -s 20 -e 1000 -t threaded
+      python3 threatsight.py example.com --common --stealth
 
     REQUIRED ARGUMENTS:
       target                Target IP address or domain name to scan
@@ -806,7 +811,28 @@ class ThreatSightScanner:
                 for result in common_services:
                     service = result.service_info
                     print(f"  {Fore.YELLOW}Port {result.port}: {service['name']} - {service['description']}{Style.RESET_ALL}")
+    
+
+
+    from core.os_fingerprint import OSFingerprintDB  
+
+    def enhanced_scan(self, ip: str, port: int):
+        """Scan with OS fingerprinting"""
+        # Get TCP response
+        packet = self.send_probe(ip, port)
         
+        # Detect OS
+        os_info = OSFingerprintDB.detect_from_packet(packet)
+        
+        # Add to results
+        return {
+            "port": port,
+            "state": "open",
+            "service": self.detect_service(ip, port),
+            "os_detected": os_info
+        }
+
+
         return results
         
 

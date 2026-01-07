@@ -103,3 +103,6 @@ class PluginManager:
         if plugin:
             return plugin.grab_banner(target, port, timeout)
         return {"error": "No plugin available"}
+    
+
+    
