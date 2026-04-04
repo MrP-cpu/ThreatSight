@@ -1,0 +1,2 @@
+[console_scripts]
+threatsight = threatsight.cli.main:cli

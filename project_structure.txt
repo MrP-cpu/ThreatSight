@@ -1,0 +1,40 @@
+.
+├── README.md
+├── Research
+│   ├── Techniques in OS-Fingerprinting.pdf
+│   └── anagnostakis.pdf
+├── ThreatSight.drawio
+├── config.yml
+├── configs
+│   ├── __init__.py
+│   ├── scan_config.yml
+│   └── vuln_config.yml
+├── core
+│   ├── __init__.py
+│   ├── banner_grabber.py
+│   ├── os_fingerprint.py
+│   ├── path
+│   │   └── to
+│   ├── plugins
+│   │   ├── _init_.py
+│   │   ├── ftp_plugin.py
+│   │   ├── http_plugin.py
+│   │   ├── smtp_plugin.py
+│   │   └── ssh_plugin.py
+│   ├── threatsight.py
+│   ├── utils.py
+│   └── vuln_matcher.py
+├── path
+│   └── to
+├── project_structure.txt
+├── requirements.txt
+├── scanner.py
+├── scanner_using.py
+├── tests
+│   ├── __init__.py
+│   ├── test_scanner.py
+│   └── test_vuln.py
+├── threat_sight.py
+└── threatsight.py
+
+10 directories, 28 files
