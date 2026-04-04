@@ -1,9 +1,9 @@
 # ThreatSight: Enterprise Vulnerability Assessment Platform  
 *From Nmap Wrapper to AI-Powered Threat Intelligence*
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue)  
-![License](https://img.shields.io/badge/License-MIT-green)  
-![Build](https://img.shields.io/badge/Build-Passing-brightgreen)
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Python](https://img.shields.io/badge/python-3.9+-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
